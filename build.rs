@@ -176,6 +176,6 @@ mod platform {
             Ok(_)  => (),
             Err(e) => println!("{}", e),
         }*/
-        println!("cargo:rustc-flags=-L native=/lib -l static=portaudio");
+        println!("cargo:rustc-flags=-L /lib -l portaudio");
     }
 }
