@@ -170,11 +170,12 @@ mod platform {
     }
 
     pub fn print_libs(_out_dir: &Path) {
-        let portaudio_pc_file = "/lib/pkgconfig/portaudio-2.0.pc";
+        /*let portaudio_pc_file = "/lib/pkgconfig/portaudio-2.0.pc";
 
         match pkg_config::Config::new().statik(true).find(portaudio_pc_file) {
             Ok(_)  => (),
             Err(e) => println!("{}", e),
-        }
+        }*/
+        println!("cargo:rustc-flags=-L native=/lib -l static=portaudio");
     }
 }
