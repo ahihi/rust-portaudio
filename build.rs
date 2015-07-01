@@ -84,12 +84,16 @@ mod unix_platform {
         }
 
         // run portaudio autoconf
-        Command::new("./configure")
+        let cmd_result = Command::new("./configure")
             .args(&["--disable-shared", "--enable-static"]) // Only build static lib
             .args(&["--prefix", out_dir.to_str().unwrap()]) // Install on the outdir
             .arg("--with-pic") // Build position-independent code (required by Rust)
             .output()
-            .unwrap();
+            ;
+        let _cmd_result = match cmd_result {
+            Ok(r) => r,
+            Err(e) => panic!("{}", e)
+        };
 
         // then make
         match Command::new("make").output() {
@@ -150,17 +154,27 @@ mod platform {
 
 #[cfg(windows)]
 mod platform {
+    use pkg_config;
     use std::path::Path;
 
+
     pub fn download() {
-        panic!("Don't know how to build portaudio on Windows yet!");
+        /* match Command::new("wget").arg(unix_platform::PORTAUDIO_URL).output() {
+            Ok(_) => {},
+            Err(e) => panic!("{}", e)
+        } */
     }
 
-    pub fn build(_: &Path) {
-        panic!("Don't know how to build portaudio on Windows yet!");
+    pub fn build(_out_dir: &Path) {
+        // unix_platform::build(out_dir);
     }
 
-    pub fn print_libs(_: &Path) {
-        panic!("Don't know how to build portaudio on Windows yet!");
+    pub fn print_libs(_out_dir: &Path) {
+        let portaudio_pc_file = "/mingw64/lib/pkgconfig/portaudio-2.0.pc";
+
+        match pkg_config::Config::new().statik(true).find(portaudio_pc_file) {
+            Ok(_)  => (),
+            Err(e) => println!("{}", e),
+        }
     }
 }
