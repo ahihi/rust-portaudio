@@ -11,7 +11,9 @@ Rust-PortAudio use the same license as PortAudio : the MIT license.
 
 Rust-PortAudio is still in development, so there may be bugs - please feel free to add an issue or even better, submit a PR!
 
-My (ahihi) fork adds very basic Windows support. The bindings are built against Mingw's PortAudio package. Currently this has been successfully tested with MSYS2/Mingw64 on Windows 8.1.
+# ahihi's fork
+
+Adds very basic Windows support. The bindings are built against Mingw's PortAudio package. Currently this has been successfully tested with MSYS2/Mingw64 on Windows 8.1.
 
 # Installation
 
