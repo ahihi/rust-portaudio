@@ -170,7 +170,7 @@ mod platform {
     }
 
     pub fn print_libs(_out_dir: &Path) {
-        let portaudio_pc_file = "/mingw64/lib/pkgconfig/portaudio-2.0.pc";
+        let portaudio_pc_file = "/lib/pkgconfig/portaudio-2.0.pc";
 
         match pkg_config::Config::new().statik(true).find(portaudio_pc_file) {
             Ok(_)  => (),
