@@ -1,4 +1,4 @@
-rust-portaudio [![Build Status](https://travis-ci.org/jeremyletang/rust-portaudio.png?branch=master)](https://travis-ci.org/jeremyletang/rust-portaudio)
+rust-portaudio
 ==============
 
 __Portaudio__ bindings for Rust.
@@ -11,16 +11,7 @@ Rust-PortAudio use the same license as PortAudio : the MIT license.
 
 Rust-PortAudio is still in development, so there may be bugs - please feel free to add an issue or even better, submit a PR!
 
-
-# Using rust-portaudio.
-
-To use rust-portaudio in your own project, add it to your Cargo.toml dependencies like so:
-
-```
-[dependencies]
-portaudio = "*"
-```
-
+My (ahihi) fork adds very basic Windows support. The bindings are built against Mingw's PortAudio package. Currently this has been successfully tested with MSYS2/Mingw64 on Windows 8.1.
 
 # Installation
 
