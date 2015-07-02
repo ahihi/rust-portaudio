@@ -154,28 +154,115 @@ mod platform {
 
 #[cfg(windows)]
 mod platform {
-    use pkg_config;
+    use std::ascii::AsciiExt;
     use std::path::Path;
+    use std::process::{Command, Output};
     use std::env;
+    use std::str;
+    use std::string::String;
+
+    pub const PORTAUDIO_URL: &'static str = "http://www.portaudio.com/archives/pa_stable_v19_20140130.tgz";
+    pub const PORTAUDIO_TAR: &'static str = "pa_stable_v19_20140130.tgz";
+    pub const PORTAUDIO_FOLDER: &'static str = "portaudio";
+
+    fn mingw_path(path: &str) -> String {
+        let mut parts = path.split("\\");
+        let drive = &(parts.next().unwrap()[..1]);
+        let root = format!("/{}", drive.to_ascii_lowercase());
+        let rest: Vec<&str> = parts.collect();
+        let mut new_path = root;
+        for part in rest {
+            new_path.push('/');
+            new_path.push_str(part);
+        }
+        new_path
+    }
+
+    fn decode_buf(bytes: &[u8]) -> &str {
+        str::from_utf8(bytes)
+        .unwrap_or_else(|_| &"<decode error>")
+    }
+
+    fn print_output(o: &Output) {
+        println!("{}", o.status);
+        println!("stdout:");
+        println!("{}", decode_buf(&o.stdout));
+        println!("stderr:");
+        println!("{}", decode_buf(&o.stderr));
+        println!("");
+    }
+
+    fn check(cmd: &mut Command) {
+        match cmd.output() {
+            Ok(o) => {
+                //print_output(&o);
+                if o.status.success() {
+                    // Happiness
+                } else {
+                    panic!("Command exited with code {}", o.status.code().unwrap());
+                }
+            },
+            Err(e) => panic!("{}", e)
+        }
+    }
 
     pub fn download() {
-        /* match Command::new("wget").arg(unix_platform::PORTAUDIO_URL).output() {
+        check(Command::new("curl").arg(PORTAUDIO_URL).arg("-O"));
+    }
+
+    pub fn build(out_dir: &Path) {
+        // untar portaudio sources
+        check(Command::new("tar").arg("xvf").arg(PORTAUDIO_TAR));
+
+        // apply patches
+        check(Command::new("patch")
+              .args(&["-p0", "-i", "mingw-w64-fix.patch"]));
+        check(Command::new("patch")
+              .args(&["-p0", "-i", "mingw-w64-cmake-allow-cxx.patch"]));
+
+        // change dir to the portaudio folder
+        match env::set_current_dir(PORTAUDIO_FOLDER) {
             Ok(_) => {},
             Err(e) => panic!("{}", e)
-        } */
-    }
-
-    pub fn build(_out_dir: &Path) {
-        // unix_platform::build(out_dir);
-    }
-
-    pub fn print_libs(_out_dir: &Path) {
-        match env::var("PA_LIB_DIR") {
-            Err(e)  => panic!("Failed to get PA_LIB_DIR: {}", e),
-            Ok(dir) => {
-                println!("cargo:rustc-link-lib=static=portaudio");
-                println!("cargo:rustc-link-search=native={}", dir);
-            }
         }
+
+        // get latest config.guess & config.sub
+        check(Command::new("curl")
+              .arg("http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD")
+              .args(&["-o", "config.guess"]));
+        check(Command::new("curl")
+              .arg("http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD")
+              .args(&["-o", "config.sub"]));
+
+        // run portaudio autoconf
+        let mingw_out_dir = mingw_path(out_dir.to_str().unwrap());
+        check(Command::new("bash")
+              .arg("./configure")
+              .args(&["--disable-shared", "--enable-static"]) // Only build static lib
+              .args(&["--prefix", &mingw_out_dir]) // Install on the outdir
+              .arg("--with-pic") // Build position-independent code (required by Rust)
+              .arg("--enable-cxx")
+              .arg("--with-winapi=wmme"));
+
+        // then make
+        check(&mut Command::new("make"));
+
+        // "install" on the outdir
+        check(Command::new("make").arg("install"));
+
+        // return to rust-portaudio root
+        match env::set_current_dir("..") {
+            Ok(_) => {},
+            Err(e) => panic!("{}", e)
+        }
+
+        // cleaning portaudio sources
+        check(Command::new("rm").arg("-rf").args(&[PORTAUDIO_TAR, PORTAUDIO_FOLDER]));
+    }
+
+    pub fn print_libs(out_dir: &Path) {
+        let out_str = out_dir.to_str().unwrap();
+        println!("cargo:rustc-link-lib=static=portaudio");
+        println!("cargo:rustc-link-search=native={}\\lib", out_str);
     }
 }
