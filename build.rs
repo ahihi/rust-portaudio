@@ -156,7 +156,7 @@ mod platform {
 mod platform {
     use pkg_config;
     use std::path::Path;
-
+    use std::env;
 
     pub fn download() {
         /* match Command::new("wget").arg(unix_platform::PORTAUDIO_URL).output() {
@@ -170,12 +170,12 @@ mod platform {
     }
 
     pub fn print_libs(_out_dir: &Path) {
-        /*let portaudio_pc_file = "/lib/pkgconfig/portaudio-2.0.pc";
-
-        match pkg_config::Config::new().statik(true).find(portaudio_pc_file) {
-            Ok(_)  => (),
-            Err(e) => println!("{}", e),
-        }*/
-        println!("cargo:rustc-flags=-L native=/lib -l static=portaudio");
+        match env::var("PA_LIB_DIR") {
+            Err(e)  => panic!("Failed to get PA_LIB_DIR: {}", e),
+            Ok(dir) => {
+                println!("cargo:rustc-link-lib=static=portaudio");
+                println!("cargo:rustc-link-search=native={}", dir);
+            }
+        }
     }
 }
