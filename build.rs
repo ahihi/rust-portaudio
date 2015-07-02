@@ -263,6 +263,7 @@ mod platform {
     pub fn print_libs(out_dir: &Path) {
         let out_str = out_dir.to_str().unwrap();
         println!("cargo:rustc-link-lib=static=portaudio");
+        println!("cargo:rustc-link-lib=static=winmm");
         println!("cargo:rustc-link-search=native={}\\lib", out_str);
     }
 }
