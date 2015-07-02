@@ -13,7 +13,7 @@ Rust-PortAudio is still in development, so there may be bugs - please feel free 
 
 # ahihi's fork
 
-Adds very basic Windows support. The bindings are built against Mingw's PortAudio package. Currently this has been successfully tested with MSYS2/Mingw64 on Windows 8.1.
+Adds support for static building on Windows. Currently this has been successfully tested with MSYS2/Mingw64 on Windows 8.1.
 
 # Installation
 
